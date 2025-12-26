@@ -29,34 +29,31 @@ export default function Agency() {
           LAYER 0: ALIVE GEOMETRIC BACKGROUND (Fixed) 
          ========================================= */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Base Glows */}
-        <div className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] bg-purple-900/10 blur-[120px] rounded-full mix-blend-screen" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full mix-blend-screen" />
+        {/* Base Glows - Adjusted for Mobile Opacity */}
+        <div className="absolute top-[-20%] left-[20%] w-[60%] h-[60%] bg-purple-900/10 blur-[80px] md:blur-[120px] rounded-full mix-blend-screen" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/10 blur-[60px] md:blur-[100px] rounded-full mix-blend-screen" />
 
-        {/* Orbit Lines (Updated: Thicker borders & Higher Opacity) */}
+        {/* Orbit Lines */}
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 200, repeat: Infinity, ease: "linear" }}
-          // CHANGED: border-2 (was border), border-white/10 (was /5)
-          className="absolute top-[-40%] left-[-20%] w-[140vh] h-[140vh] border-2 border-white/10 rounded-full"
+          // CHANGED: Adjusted sizing for mobile to prevent too much crowding
+          className="absolute top-[-40%] left-[-40%] md:left-[-20%] w-[120vh] md:w-[140vh] h-[120vh] md:h-[140vh] border-2 border-white/10 rounded-full"
         />
         <motion.div 
           animate={{ rotate: -360 }}
           transition={{ duration: 100, repeat: Infinity, ease: "linear" }}
-          // CHANGED: border-2, border-white/20
-          className="absolute bottom-[-20%] right-[-20%] w-[100vh] h-[100vh] border-2 border-dashed border-white/20 rounded-full"
+          className="absolute bottom-[-20%] right-[-40%] md:right-[-20%] w-[80vh] md:w-[100vh] h-[80vh] md:h-[100vh] border-2 border-dashed border-white/20 rounded-full"
         />
 
-        {/* Tech Grid (Updated: Brighter Lines) */}
-        {/* CHANGED: rgba alpha from 0.05 to 0.15 for clearer lines */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:80px_80px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30"></div>
+        {/* Tech Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:60px_60px] md:bg-[size:80px_80px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-30"></div>
         
-        {/* Shooting Beams (Updated: Thicker Beam) */}
+        {/* Shooting Beams */}
         <motion.div 
            initial={{ top: "-100%" }}
            animate={{ top: "100%" }}
            transition={{ duration: 8, repeat: Infinity, ease: "linear", delay: 2 }}
-           // CHANGED: w-[3px] (was 1px), opacity-50
            className="absolute right-[15%] w-[3px] h-[30%] bg-gradient-to-b from-transparent via-blue-500 to-transparent opacity-50"
         />
       </div>
@@ -64,33 +61,23 @@ export default function Agency() {
       {/* =========================================
           LAYER 1: CONTENT
          ========================================= */}
-      <div className="relative z-10 pt-32 pb-20 px-6 md:px-12 max-w-[1400px] mx-auto min-h-screen">
+      <div className="relative z-10 pt-28 md:pt-32 pb-12 md:pb-20 px-4 md:px-12 max-w-[1400px] mx-auto min-h-screen">
         
         {/* 1. MANIFESTO SECTION */}
-        <section className="mb-32 relative">
+        <section className="mb-20 md:mb-32 relative">
             
-            {/* Decorative Code Block (Floating Right) - ESCAPED QUOTES HERE */}
+            {/* Decorative Code Block (Hidden on Mobile, Visible on LG screens) */}
             <div className="hidden lg:block absolute top-10 right-0 p-6 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md font-mono text-sm text-gray-400 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
                 <div className="flex gap-2 mb-4 border-b border-white/5 pb-2">
                     <div className="w-3 h-3 rounded-full bg-red-500/50" />
                     <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                     <div className="w-3 h-3 rounded-full bg-green-500/50" />
                 </div>
-                <div>
-                    <span className="text-purple-400">const</span> <span className="text-blue-300">agency</span> = <span className="text-yellow-300">{`{`}</span>
-                </div>
-                <div className="pl-4">
-                    <span className="text-blue-300">philosophy</span>: <span className="text-green-400">&apos;Engineering First&apos;</span>,
-                </div>
-                <div className="pl-4">
-                    <span className="text-blue-300">focus</span>: [<span className="text-green-400">&apos;Data&apos;</span>, <span className="text-green-400">&apos;Cloud&apos;</span>],
-                </div>
-                <div className="pl-4">
-                     <span className="text-blue-300">slides</span>: <span className="text-red-400">false</span>,
-                </div>
-                <div className="pl-4">
-                     <span className="text-blue-300">code</span>: <span className="text-purple-400">true</span>
-                </div>
+                <div><span className="text-purple-400">const</span> <span className="text-blue-300">agency</span> = <span className="text-yellow-300">{`{`}</span></div>
+                <div className="pl-4"><span className="text-blue-300">philosophy</span>: <span className="text-green-400">&apos;Engineering First&apos;</span>,</div>
+                <div className="pl-4"><span className="text-blue-300">focus</span>: [<span className="text-green-400">&apos;Data&apos;</span>, <span className="text-green-400">&apos;Cloud&apos;</span>],</div>
+                <div className="pl-4"><span className="text-blue-300">slides</span>: <span className="text-red-400">false</span>,</div>
+                <div className="pl-4"><span className="text-blue-300">code</span>: <span className="text-purple-400">true</span></div>
                 <div><span className="text-yellow-300">{`}`}</span>;</div>
             </div>
 
@@ -100,21 +87,22 @@ export default function Agency() {
                 viewport={{ once: true }}
                 variants={staggerContainer}
             >
-                <motion.h1 variants={fadeInUp} className="text-6xl md:text-9xl font-bold tracking-tighter uppercase leading-[0.85] mb-12 flex flex-col">
+                {/* CHANGED: Text sizing for mobile (text-5xl) up to desktop (text-9xl) */}
+                <motion.h1 variants={fadeInUp} className="text-5xl sm:text-7xl md:text-9xl font-bold tracking-tighter uppercase leading-[0.9] md:leading-[0.85] mb-8 md:mb-12 flex flex-col">
                     <ScrambleText text="ENGINEERING" delay={200} />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 to-white w-fit">
                         <ScrambleText text="FIRST" delay={800} />
                     </span>
                 </motion.h1>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                     <motion.div variants={fadeInUp}>
-                        <p className="text-xl text-gray-300 leading-relaxed">
+                        <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
                             Hoursdev was founded on a simple principle: <strong className="text-white bg-white/10 px-1 rounded">Code speaks louder than slides.</strong> We are not just a creative agency; we are technical specialists deeply rooted in data engineering and system architecture.
                         </p>
                     </motion.div>
                     <motion.div variants={fadeInUp}>
-                        <p className="text-xl text-gray-300 leading-relaxed">
+                        <p className="text-lg md:text-xl text-gray-300 leading-relaxed">
                             Whether migrating complex databases or building the next viral app, we bring the same level of rigorous precision and scalability to every project. We don&apos;t just build for launch; we build for the decade.
                         </p>
                     </motion.div>
@@ -128,7 +116,8 @@ export default function Agency() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 border-y border-white/10 py-16 mb-32 relative bg-white/[0.02]"
+            // CHANGED: Adjusted padding and margin for mobile
+            className="grid grid-cols-2 md:grid-cols-4 gap-y-12 gap-x-4 border-y border-white/10 py-10 md:py-16 mb-20 md:mb-32 relative bg-white/[0.02]"
         >
             {[
             { label: "Projects Shipped", value: "50+" },
@@ -142,10 +131,11 @@ export default function Agency() {
                 whileHover={{ scale: 1.05 }}
                 className="text-center group cursor-default"
             >
-                <h3 className="text-4xl md:text-6xl font-bold mb-2 text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all duration-300">
+                {/* CHANGED: Smaller text on mobile (text-3xl) to prevent wrapping */}
+                <h3 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-2 text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all duration-300">
                     {stat.value}
                 </h3>
-                <p className="text-xs md:text-sm uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">
+                <p className="text-[10px] md:text-sm uppercase tracking-widest text-gray-500 group-hover:text-white transition-colors">
                     {stat.label}
                 </p>
             </motion.div>
@@ -158,8 +148,9 @@ export default function Agency() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={staggerContainer}
+            className="mb-12 md:mb-0" // Add bottom padding for mobile scroll
         >
-            <motion.h2 variants={fadeInUp} className="text-sm uppercase tracking-widest text-gray-500 mb-8 flex items-center gap-2">
+            <motion.h2 variants={fadeInUp} className="text-xs md:text-sm uppercase tracking-widest text-gray-500 mb-8 flex items-center gap-2">
                 <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"/> ( Our Values )
             </motion.h2>
 
@@ -174,11 +165,12 @@ export default function Agency() {
                     key={i} 
                     variants={fadeInUp}
                     whileHover={{ x: 20, backgroundColor: 'rgba(255,255,255,0.03)' }}
-                    className="border-b border-white/10 pb-8 pt-8 pl-4 transition-all duration-300 cursor-pointer group rounded-lg"
+                    className="border-b border-white/10 pb-6 md:pb-8 pt-6 md:pt-8 pl-2 md:pl-4 transition-all duration-300 cursor-pointer group rounded-lg"
                 >
-                    <h3 className="text-2xl md:text-4xl flex items-center justify-between">
+                    <h3 className="text-xl sm:text-2xl md:text-4xl flex items-center justify-between">
                         <span className="group-hover:text-blue-300 transition-colors">{value}</span>
-                        <span className="opacity-0 group-hover:opacity-100 -translate-x-10 group-hover:-translate-x-4 transition-all duration-300 text-purple-400 text-xl">
+                        {/* CHANGED: Adjusted arrow icon for mobile visibility */}
+                        <span className="opacity-0 group-hover:opacity-100 -translate-x-10 group-hover:-translate-x-4 transition-all duration-300 text-purple-400 text-lg md:text-xl">
                             &lt;/&gt;
                         </span>
                     </h3>

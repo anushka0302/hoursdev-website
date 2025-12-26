@@ -1,12 +1,19 @@
 'use client';
 
+import { useRef } from 'react';
 import Link from 'next/link';
 import ScrambleText from '@/components/ScrambleText';
 import Typewriter from '@/components/Typewriter'; 
-import { motion, Variants } from 'framer-motion';
+import { motion, useScroll, useTransform, Variants } from 'framer-motion';
 
 // --- DATA: Clients ---
 const clients = [
+  { 
+    name: 'Haatwale', 
+    url: 'https://www.haatwale.com',
+    desc: 'E-commerce Marketplace',
+    year: '2024'
+  },
   { 
     name: 'Ghume Ghume', 
     url: 'https://www.ghumeghume.com',
@@ -49,39 +56,51 @@ const services = [
   { id: '05', name: 'Digital Marketing', tags: 'SEO / Campaigns' },
 ];
 
-// --- ANIMATION VARIANTS ---
+// --- FIXED ANIMATION VARIANTS FOR MOBILE ---
+// 1. Removed 'filter: blur' (Too heavy for mobile)
+// 2. Reduced 'y' offset (From 40 to 20 for snappier feel)
+// 3. Sped up duration (From 0.8s to 0.6s)
 const fadeInUp: Variants = {
-  hidden: { opacity: 0, y: 40, filter: 'blur(10px)' },
+  hidden: { 
+    opacity: 0, 
+    y: 30, // Reduced from 40 for safer mobile rendering
+    // filter: 'blur(10px)' // REMOVED: This causes mobile glitches
+  },
   visible: { 
     opacity: 1, 
     y: 0, 
-    filter: 'blur(0px)',
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
+    // filter: 'blur(0px)', // REMOVED
+    transition: { duration: 0.6, ease: "easeOut" } 
   }
 };
 
 const staggerContainer: Variants = {
   hidden: { opacity: 1 },
   visible: {
-    transition: { staggerChildren: 0.15, delayChildren: 0.2 }
+    transition: { 
+      staggerChildren: 0.1, // Faster stagger so user doesn't scroll past empty space
+      delayChildren: 0.1    // Lower delay
+    }
   }
 };
 
 export default function Home() {
+  const containerRef = useRef(null);
+  const { scrollY } = useScroll();
+
+  // Mobile Shrink Logic
+  const heroScale = useTransform(scrollY, [0, 200], [1, 0.8]);
+  const heroOpacity = useTransform(scrollY, [0, 200], [1, 0]);
+  const heroY = useTransform(scrollY, [0, 200], [0, 100]); 
+
   return (
-    // MAIN CONTAINER: Deep Gray/Black Gradient
     <main className="relative min-h-screen bg-[#050505] text-white selection:bg-purple-500/30 overflow-x-hidden">
       
-      {/* =========================================
-          LAYER 0: ALIVE GEOMETRIC BACKGROUND (Fixed) 
-         ========================================= */}
+      {/* LAYER 0: BACKGROUND (Fixed) */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        
-        {/* 1. Base Gradient Glow */}
         <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 blur-[120px] rounded-full mix-blend-screen" />
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/10 blur-[100px] rounded-full mix-blend-screen" />
 
-        {/* 2. ROTATING ORBIT LINES */}
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
@@ -92,11 +111,8 @@ export default function Home() {
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
           className="absolute top-[10%] left-[20%] w-[80vh] h-[80vh] border-2 border-dashed border-white/20 rounded-full"
         />
-
-        {/* 3. SHOOTING GRID LINES */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
         
-        {/* 4. Alive Beams */}
         <motion.div 
            initial={{ top: "-100%" }}
            animate={{ top: "100%" }}
@@ -109,105 +125,62 @@ export default function Home() {
            transition={{ duration: 5, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
            className="absolute right-[30%] w-[2px] h-[60%] bg-gradient-to-b from-transparent via-blue-500 to-transparent opacity-50"
         />
-
       </div>
 
-
-      {/* =========================================
-          LAYER 1: CONTENT
-         ========================================= */}
-      <div className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-8 pt-32 pb-20 flex flex-col justify-between min-h-screen">
+      {/* LAYER 1: CONTENT */}
+      <div ref={containerRef} className="relative z-10 max-w-[1400px] mx-auto px-4 md:px-8 pt-32 pb-20 flex flex-col justify-between min-h-screen">
         
         {/* 1. HERO SECTION */}
-        <section className="mb-32 relative">
-          
-          {/* --- DECORATIVE CODE SNIPPETS (Floating Behind Text) --- */}
+        <motion.section 
+          style={{ 
+            scale: heroScale, 
+            opacity: heroOpacity,
+            y: heroY 
+          }}
+          className="mb-32 relative origin-top"
+        >
+          {/* DECORATIVE CODE SNIPPETS */}
           <div className="absolute inset-0 pointer-events-none z-0 overflow-visible">
-            
-            {/* 1. Top Right: React Component Syntax */}
             <div className="absolute top-[-10%] right-[-5%] md:right-[-10%] opacity-20 font-mono text-xs md:text-sm leading-relaxed">
-                <div className="text-blue-300">
-                    <Typewriter text="<div className='future'>" startDelay={200} />
-                </div>
-                <div className="pl-4 text-purple-300">
-                    <Typewriter text="{services.map(s => (" startDelay={1500} />
-                </div>
-                <div className="pl-8 text-gray-400">
-                    <Typewriter text="<DigitalReality key={s.id} />" startDelay={3000} />
-                </div>
-                <div className="pl-4 text-purple-300">
-                    <Typewriter text="))}" startDelay={4500} />
-                </div>
-                <div className="text-blue-300">
-                    <Typewriter text="</div>" startDelay={5000} />
-                </div>
+                <div className="text-blue-300"><Typewriter text="<div className='future'>" startDelay={200} /></div>
+                <div className="pl-4 text-purple-300"><Typewriter text="{services.map(s => (" startDelay={1500} /></div>
+                <div className="pl-8 text-gray-400"><Typewriter text="<DigitalReality key={s.id} />" startDelay={3000} /></div>
+                <div className="pl-4 text-purple-300"><Typewriter text="))}" startDelay={4500} /></div>
+                <div className="text-blue-300"><Typewriter text="</div>" startDelay={5000} /></div>
             </div>
 
-            {/* 2. Top Left: Python Data Pipeline */}
             <div className="absolute top-[-5%] left-[-2%] opacity-15 font-mono text-xs md:text-sm leading-relaxed hidden lg:block">
-                 <div className="text-yellow-400">
-                     <Typewriter text="@pipeline_task" startDelay={500} />
-                 </div>
-                 <div className="text-blue-400">
-                     <Typewriter text="def process_stream(data):" startDelay={2000} />
-                 </div>
-                 <div className="pl-4 text-gray-300">
-                     <Typewriter text="clean = sanitize(data)" startDelay={3500} />
-                 </div>
-                 <div className="pl-4 text-purple-400">
-                     <Typewriter text="return db.insert(clean)" startDelay={5000} />
-                 </div>
+                 <div className="text-yellow-400"><Typewriter text="@pipeline_task" startDelay={500} /></div>
+                 <div className="text-blue-400"><Typewriter text="def process_stream(data):" startDelay={2000} /></div>
+                 <div className="pl-4 text-gray-300"><Typewriter text="clean = sanitize(data)" startDelay={3500} /></div>
+                 <div className="pl-4 text-purple-400"><Typewriter text="return db.insert(clean)" startDelay={5000} /></div>
             </div>
 
-            {/* 3. Bottom Left: SQL Query */}
             <div className="absolute bottom-[-20%] left-[-5%] opacity-20 font-mono text-xs md:text-sm leading-relaxed hidden md:block">
-                 <div className="text-green-400">
-                     <Typewriter text="SELECT * FROM data_pipelines" startDelay={1000} />
-                 </div>
-                 <div className="text-green-400 pl-4">
-                     <Typewriter text="WHERE latency < 10ms" startDelay={2500} />
-                 </div>
-                 <div className="text-green-400 pl-4">
-                     <Typewriter text="AND status = 'OPTIMIZED';" startDelay={4000} />
-                 </div>
+                 <div className="text-green-400"><Typewriter text="SELECT * FROM data_pipelines" startDelay={1000} /></div>
+                 <div className="text-green-400 pl-4"><Typewriter text="WHERE latency < 10ms" startDelay={2500} /></div>
+                 <div className="text-green-400 pl-4"><Typewriter text="AND status = 'OPTIMIZED';" startDelay={4000} /></div>
             </div>
 
-             {/* 4. Center Right: JSON Config */}
              <div className="absolute top-[50%] right-[0%] opacity-10 font-mono text-xs hidden lg:block text-gray-400">
                 <Typewriter text="const stack = ['Next.js 15', 'Tailwind v4'];" startDelay={3000} />
              </div>
 
-             {/* 5. Center Left: API Fetch */}
              <div className="absolute top-[40%] left-[0%] opacity-10 font-mono text-xs hidden lg:block text-orange-300">
                 <Typewriter text="await fetch('/api/v1/migration', method: 'POST');" startDelay={6000} />
              </div>
 
-             {/* 6. Bottom Right: Flutter/Dart Widget */}
              <div className="absolute bottom-[-10%] right-[0%] opacity-15 font-mono text-xs hidden md:block leading-relaxed">
-                 <div className="text-blue-300">
-                    <Typewriter text="Widget build(BuildContext context) {" startDelay={1000} />
-                 </div>
-                 <div className="pl-4 text-purple-300">
-                    <Typewriter text="return Container(" startDelay={2500} />
-                 </div>
-                 <div className="pl-8 text-yellow-300">
-                    <Typewriter text="child: Text('Hoursdev Mobile')" startDelay={4000} />
-                 </div>
-                 <div className="pl-4 text-purple-300">
-                    <Typewriter text=");" startDelay={5500} />
-                 </div>
-                 <div className="text-blue-300">
-                    <Typewriter text="}" startDelay={6000} />
-                 </div>
+                 <div className="text-blue-300"><Typewriter text="Widget build(BuildContext context) {" startDelay={1000} /></div>
+                 <div className="pl-4 text-purple-300"><Typewriter text="return Container(" startDelay={2500} /></div>
+                 <div className="pl-8 text-yellow-300"><Typewriter text="child: Text('Hoursdev Mobile')" startDelay={4000} /></div>
+                 <div className="pl-4 text-purple-300"><Typewriter text=");" startDelay={5500} /></div>
+                 <div className="text-blue-300"><Typewriter text="}" startDelay={6000} /></div>
              </div>
-
           </div>
-          {/* --- END CODE SNIPPETS --- */}
-
 
           <h1 className="text-[10vw] md:text-[12vw] leading-[0.85] font-bold tracking-tighter uppercase mb-8 flex flex-col relative z-10">
             <ScrambleText text="WE BUILD" delay={200} duration={1200} />
-            
             <motion.span 
               initial={{ backgroundPosition: "0% 50%" }}
               animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
@@ -216,7 +189,6 @@ export default function Home() {
             >
               <ScrambleText text="DIGITAL" delay={800} duration={1200} />
             </motion.span>
-            
             <ScrambleText text="REALITIES" delay={1400} duration={1200} />
           </h1>
 
@@ -239,7 +211,7 @@ export default function Home() {
               </Link>
             </div>
           </motion.div>
-        </section>
+        </motion.section>
 
         {/* 2. WHY CHOOSE US */}
         <motion.section 
@@ -247,12 +219,12 @@ export default function Home() {
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          // UPDATED VIEWPORT: Added margin to trigger earlier on mobile
+          viewport={{ once: true, margin: "-50px" }}
         >
           <motion.div variants={fadeInUp} className="flex items-end justify-between mb-8">
             <h2 className="text-sm uppercase tracking-widest text-gray-500">( The Advantage )</h2>
           </motion.div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {features.map((feature, i) => (
               <motion.div 
@@ -262,7 +234,6 @@ export default function Home() {
                 className="group relative border border-white/10 bg-white/5 backdrop-blur-md p-8 rounded-2xl overflow-hidden min-h-[250px] flex flex-col justify-between hover:border-purple-500/30 transition-all duration-300"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
                 <div className="relative z-10">
                   <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
                   <p className="text-gray-300 text-sm leading-relaxed">{feature.desc}</p>
@@ -282,12 +253,11 @@ export default function Home() {
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, margin: "-50px" }}
         >
           <motion.div variants={fadeInUp} className="flex items-end justify-between mb-8">
             <h2 className="text-sm uppercase tracking-widest text-gray-500">( Selected Works )</h2>
           </motion.div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {clients.map((client, i) => (
               <motion.a 
@@ -299,7 +269,6 @@ export default function Home() {
                 className="group block border border-white/10 bg-white/5 backdrop-blur-md p-8 rounded-2xl relative hover:bg-white/10 transition-colors duration-300 overflow-hidden"
               >
                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                 
                   <div className="flex justify-between items-start relative z-10">
                     <div>
                       <h3 className="text-4xl md:text-5xl font-bold mb-2 text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all duration-300">
@@ -325,17 +294,16 @@ export default function Home() {
           </div>
         </motion.section>
 
-        {/* 4. SERVICES LIST (With Typewriter Code Syntax) */}
+        {/* 4. SERVICES LIST */}
         <motion.section
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ once: true, margin: "-50px" }}
         >
           <motion.div variants={fadeInUp} className="flex items-end justify-between mb-8">
             <h2 className="text-sm uppercase tracking-widest text-gray-500">( Our Expertise )</h2>
           </motion.div>
-          
           <div className="flex flex-col">
             {services.map((service, index) => (
               <motion.div 
@@ -344,20 +312,10 @@ export default function Home() {
                 whileHover={{ x: 10 }} 
                 className="group border-t border-gray-800 py-10 hover:bg-white/5 transition-colors duration-300 cursor-pointer flex flex-col md:flex-row justify-between items-start md:items-center px-4 rounded-xl relative overflow-hidden"
               >
-                <span className="text-sm font-mono mb-2 md:mb-0 opacity-50 text-blue-400 mr-4">
-                  {service.id}
-                </span>
-                
-                <h3 className="text-3xl md:text-5xl font-medium tracking-tight flex-1 md:ml-20 relative z-10 group-hover:text-white transition-colors duration-300">
-                  {service.name}
-                </h3>
-                
+                <span className="text-sm font-mono mb-2 md:mb-0 opacity-50 text-blue-400 mr-4">{service.id}</span>
+                <h3 className="text-3xl md:text-5xl font-medium tracking-tight flex-1 md:ml-20 relative z-10 group-hover:text-white transition-colors duration-300">{service.name}</h3>
                 <div className="relative z-10 mt-2 md:mt-0 px-3 py-1 bg-white/5 border border-white/10 rounded-md">
-                   <Typewriter 
-                     text={service.tags} 
-                     startDelay={index * 500} 
-                     className="text-xs md:text-sm text-green-400" 
-                   />
+                   <Typewriter text={service.tags} startDelay={index * 500} className="text-xs md:text-sm text-green-400" />
                 </div>
               </motion.div>
             ))}
@@ -366,7 +324,6 @@ export default function Home() {
         </motion.section>
 
       </div> 
-      
     </main>
   );
 }
