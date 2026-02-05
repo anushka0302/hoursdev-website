@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+// FIX: Imported React and ChangeEvent to stop errors
+import React, { useState, ChangeEvent } from 'react';
 import ScrambleText from '@/components/ScrambleText';
 import Typewriter from '@/components/Typewriter';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
@@ -44,27 +45,68 @@ const objectiveOptions = [
 export default function BookDemo() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [formLocked, setFormLocked] = useState(false);
   
-  // Custom Select State 1: Budget
+  // Phone Formatting State
+  const [phoneValue, setPhoneValue] = useState("");
+
+  // Custom Select State
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState(budgetOptions[0]);
-
-  // Custom Select State 2: Objective (Survey)
   const [objectiveOpen, setObjectiveOpen] = useState(false);
   const [selectedObjective, setSelectedObjective] = useState(objectiveOptions[0]);
+
+  // --- UPDATED PHONE FORMATTER ---
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value; // FIXED: Changed 'let' to 'const'
+    
+    // 1. Allow digits AND the plus sign (at the start)
+    // Remove characters that are NOT digits or '+'
+    const clean = input.replace(/[^0-9+]/g, '');
+
+    // 2. Formatting Logic
+    let formatted = clean;
+
+    // If it starts with a '+', assume International Format (e.g., +91 98765 43210)
+    if (clean.startsWith('+')) {
+        // Add spacing after Country Code (approx 2-3 chars) and then groups of 5
+        if (clean.length > 3) {
+            formatted = `${clean.slice(0, 3)} ${clean.slice(3, 8)} ${clean.slice(8, 13)}`;
+        }
+    } 
+    // Otherwise, assume US Format: (555) 000-0000
+    else if (clean.length > 0) {
+        if (clean.length > 6) {
+             formatted = `(${clean.slice(0, 3)}) ${clean.slice(3, 6)}-${clean.slice(6, 10)}`;
+        } else if (clean.length > 3) {
+             formatted = `(${clean.slice(0, 3)}) ${clean.slice(3)}`;
+        }
+    }
+
+    setPhoneValue(formatted);
+  };
 
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true);
     
+    // 1. HONEYPOT CHECK (Anti-Spam)
+    if (formData.get('bot_field')) {
+        setIsSubmitting(false);
+        return;
+    }
+
     // Append custom fields
     formData.append('budget', selectedBudget);
-    formData.append('service', selectedObjective); // Map Objective to 'service' field
+    formData.append('service', selectedObjective);
+    // Ensure the formatted phone value is sent
+    formData.set('mobile', phoneValue);
 
     await submitContactForm(formData);
     
     setIsSubmitting(false);
+    setFormLocked(true); // Lock the form
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 5000);
+    setTimeout(() => setShowToast(false), 8000);
   }
 
   return (
@@ -125,11 +167,38 @@ export default function BookDemo() {
         <motion.div className="md:w-1/2" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
           <div className="bg-white/5 backdrop-blur-2xl p-6 md:p-10 rounded-3xl border border-white/10 shadow-2xl relative overflow-visible">
             
+            {/* Success Overlay */}
+            <AnimatePresence>
+                {formLocked && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        className="absolute inset-0 z-50 bg-[#050505]/95 flex flex-col items-center justify-center text-center p-8 backdrop-blur-md rounded-3xl border border-emerald-500/30"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0 }} 
+                            animate={{ scale: 1 }} 
+                            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                            className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mb-6"
+                        >
+                            <svg className="w-10 h-10 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </motion.div>
+                        <h3 className="text-3xl font-bold text-white mb-2 tracking-tight">BOOKING CONFIRMED</h3>
+                        <p className="text-gray-400 text-base max-w-xs">Our team has received your coordinates. Expect a briefing shortly.</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Form Glow Effect */}
             <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-emerald-500/20 blur-[80px] rounded-full pointer-events-none" />
 
             <form action={handleSubmit} className="flex flex-col gap-6 relative z-10">
               
+              {/* HONEYPOT (Hidden) */}
+              <input type="text" name="bot_field" className="hidden" tabIndex={-1} autoComplete="off" />
+
               {/* Row 1: Name & Company */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2 group/input">
@@ -142,7 +211,7 @@ export default function BookDemo() {
                 </div>
               </div>
 
-              {/* Row 2: Email & Mobile (NEW) */}
+              {/* Row 2: Email & Mobile */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2 group/input">
                   <label className="text-xs uppercase tracking-widest text-gray-500 group-focus-within:text-emerald-400 transition-colors">Email</label>
@@ -150,7 +219,14 @@ export default function BookDemo() {
                 </div>
                 <div className="flex flex-col gap-2 group/input">
                   <label className="text-xs uppercase tracking-widest text-gray-500 group-focus-within:text-emerald-400 transition-colors">Mobile Number</label>
-                  <input type="tel" name="mobile" className="bg-transparent border-b border-white/20 focus:border-emerald-400 outline-none py-2 transition-colors text-white placeholder:text-gray-700 font-light" placeholder="+1 (555) 000-0000" />
+                  <input 
+                    type="tel" 
+                    name="mobile" 
+                    value={phoneValue}
+                    onChange={handlePhoneChange}
+                    className="bg-transparent border-b border-white/20 focus:border-emerald-400 outline-none py-2 transition-colors text-white placeholder:text-gray-700 font-light" 
+                    placeholder="+1 (555) 000-0000" 
+                  />
                 </div>
               </div>
 
@@ -237,12 +313,12 @@ export default function BookDemo() {
               {/* Submit Button */}
               <button 
                 type="submit" 
-                disabled={isSubmitting}
-                className="mt-4 bg-emerald-500 text-black py-4 rounded-full font-bold uppercase tracking-widest hover:bg-emerald-400 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+                disabled={isSubmitting || formLocked}
+                className="mt-4 bg-emerald-500 text-black py-4 rounded-full font-bold uppercase tracking-widest hover:bg-emerald-400 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center group relative overflow-hidden"
               >
-                {isSubmitting ? (
-                  <span className="animate-pulse">Processing...</span>
-                ) : "Confirm Booking"}
+                <span className="relative z-10">{isSubmitting ? "Processing..." : "Confirm Booking"}</span>
+                {/* Button Scan Effect */}
+                {!isSubmitting && !formLocked && <div className="absolute inset-0 bg-white/30 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out skew-x-12" />}
               </button>
 
             </form>
@@ -251,7 +327,7 @@ export default function BookDemo() {
 
       </div>
 
-      {/* --- TOAST NOTIFICATION --- */}
+      {/* --- TOAST NOTIFICATION (Backup) --- */}
       <AnimatePresence>
         {showToast && (
           <motion.div 
@@ -268,9 +344,6 @@ export default function BookDemo() {
                 <h4 className="font-bold text-emerald-400 text-lg">Mission Confirmed</h4>
                 <p className="text-gray-400 text-sm">Coordinates received. Our team is initializing the uplink.</p>
               </div>
-              <button onClick={() => setShowToast(false)} className="absolute top-2 right-2 text-gray-600 hover:text-white transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
             </div>
           </motion.div>
         )}

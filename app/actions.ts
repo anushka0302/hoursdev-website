@@ -10,7 +10,6 @@ export async function submitContactForm(formData: FormData) {
   
   // --- 2. Extract Optional/Specific Fields ---
   const mobile = (formData.get('mobile') as string) || 'N/A'; 
-  // 'service' is reused for 'Primary Objective' in Book Demo
   const service = (formData.get('service') as string) || 'General Inquiry'; 
   
   // Book Demo Fields
@@ -38,6 +37,7 @@ export async function submitContactForm(formData: FormData) {
   console.log('--------------------------------');
   console.log(`${typeLabel} RECEIVED`);
   console.log(`From: ${name} (${email})`);
+  console.log(`Mobile: ${mobile}`); // Added log for verification
   if (deploymentScale) console.log(`Scale: ${deploymentScale}`);
   else if (demoDate) console.log(`Budget: ${budget}, Date: ${demoDate}`);
   else console.log(`Service: ${service}`);
@@ -65,7 +65,7 @@ export async function submitContactForm(formData: FormData) {
     // --- 7. Send Email ---
     await transporter.sendMail({
       from: `"Hoursdev System" <${process.env.GMAIL_USER}>`,
-      to: 'hoursdevs@gmail.com', // Your receiving email
+      to: 'hoursdevs@gmail.com',
       replyTo: email,
       subject: subjectLine,
       
@@ -80,6 +80,10 @@ export async function submitContactForm(formData: FormData) {
             <tr>
               <td style="padding: 8px 0; color: #666; width: 140px;"><strong>Email:</strong></td>
               <td style="padding: 8px 0;">${email}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;"><strong>Mobile:</strong></td>
+              <td style="padding: 8px 0;">${mobile}</td>
             </tr>
             
             ${/* Sentinel Specifics */ ''}
@@ -96,10 +100,6 @@ export async function submitContactForm(formData: FormData) {
 
             ${/* Book Demo Specifics */ ''}
             ${demoDate ? `
-            <tr>
-              <td style="padding: 8px 0; color: #666;"><strong>Mobile:</strong></td>
-              <td style="padding: 8px 0;">${mobile}</td>
-            </tr>
             <tr>
               <td style="padding: 8px 0; color: #666;"><strong>Company:</strong></td>
               <td style="padding: 8px 0;">${company}</td>
@@ -121,10 +121,6 @@ export async function submitContactForm(formData: FormData) {
             ${/* Standard Contact Specifics */ ''}
             ${!demoDate && !deploymentScale ? `
             <tr>
-              <td style="padding: 8px 0; color: #666;"><strong>Mobile:</strong></td>
-              <td style="padding: 8px 0;">${mobile}</td>
-            </tr>
-            <tr>
               <td style="padding: 8px 0; color: #666;"><strong>Service:</strong></td>
               <td style="padding: 8px 0;">${service}</td>
             </tr>
@@ -145,7 +141,7 @@ export async function submitContactForm(formData: FormData) {
       `,
     });
 
-    console.log("✅ Email sent successfully to hoursdevs@gmail.com");
+    console.log("✅ Email sent successfully");
     return { success: true };
 
   } catch (error) {

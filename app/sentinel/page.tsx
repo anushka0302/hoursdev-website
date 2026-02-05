@@ -7,16 +7,42 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { submitContactForm } from '../actions';
 import Image from 'next/image';
 
+// --- OPTIONS FOR CUSTOM DROPDOWN ---
+const scaleOptions = [
+  "Single Unit (Personal)",
+  "Small Team (2-10)",
+  "Enterprise Grid (10+)",
+  "Government / Defense"
+];
+
 export default function SentinelPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [formLocked, setFormLocked] = useState(false); // New Success State
+
+  // Custom Dropdown State
+  const [scaleOpen, setScaleOpen] = useState(false);
+  const [selectedScale, setSelectedScale] = useState(scaleOptions[0]);
 
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true);
+    
+    // 1. HONEYPOT CHECK (Anti-Spam)
+    // If the hidden 'bot_field' has value, it's a bot. Fake success.
+    if (formData.get('bot_field')) {
+        setIsSubmitting(false);
+        return;
+    }
+
+    // 2. Append Custom Dropdown Value
+    formData.append('deployment_scale', selectedScale);
+
     await submitContactForm(formData);
+    
     setIsSubmitting(false);
+    setFormLocked(true); // Lock form on success
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 6000);
+    setTimeout(() => setShowToast(false), 8000);
   }
 
   return (
@@ -29,7 +55,6 @@ export default function SentinelPage() {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20"></div>
       </div>
 
-      {/* --- UPDATED CONTAINER SPACING (pt-32 md:pt-40) --- */}
       <div className="relative z-10 max-w-[1400px] mx-auto min-h-screen flex flex-col lg:flex-row items-center justify-center gap-12 px-6 pt-32 pb-20 md:pt-40">
         
         {/* --- LEFT: VISUALS --- */}
@@ -53,34 +78,26 @@ export default function SentinelPage() {
             The first Converged Personal SOC. Unifying physical surveillance and cyber-defense into a single, AI-driven active defense engine.
           </p>
 
-          {/* --- ENHANCED PRODUCT IMAGE HUD --- */}
+          {/* --- HUD IMAGE --- */}
           <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(220,38,38,0.15)] group bg-black/50">
-             
-             {/* 1. The Image */}
              <Image 
                src="/sentin.jpg" 
                alt="Sentinel Prime Device" 
                fill 
                className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 grayscale-[30%] group-hover:grayscale-0"
              />
-             
-             {/* 2. Monitor Grid Overlay */}
              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06)_1px,transparent_1px)] z-10 bg-[size:100%_4px,20px_100%] pointer-events-none" />
-
-             {/* 3. Animated Scanline */}
              <motion.div 
                 animate={{ top: ["-10%", "110%"] }}
                 transition={{ duration: 3, ease: "linear", repeat: Infinity }}
                 className="absolute left-0 right-0 h-[2px] bg-red-500/50 shadow-[0_0_20px_rgba(220,38,38,1)] z-20"
              />
-
-             {/* 4. HUD Corner Brackets */}
+             {/* HUD Corners */}
              <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-red-500/60 z-20" />
              <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-red-500/60 z-20" />
              <div className="absolute bottom-16 right-4 w-8 h-8 border-b-2 border-r-2 border-red-500/60 z-20" />
              <div className="absolute bottom-16 left-4 w-8 h-8 border-b-2 border-l-2 border-red-500/60 z-20" />
-
-             {/* 5. Technical Status Bar */}
+             {/* Footer */}
              <div className="absolute bottom-0 left-0 w-full bg-black/90 border-t border-red-500/20 p-3 flex justify-between items-center z-30 backdrop-blur-sm">
                  <div className="flex flex-col gap-0.5">
                      <div className="flex items-center gap-2">
@@ -97,7 +114,6 @@ export default function SentinelPage() {
                  </div>
              </div>
           </div>
-
         </motion.div>
 
         {/* --- RIGHT: ACCESS TERMINAL (FORM) --- */}
@@ -107,7 +123,32 @@ export default function SentinelPage() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="lg:w-1/2 w-full max-w-md"
         >
-          <div className="bg-[#0A0A0A] border border-white/10 p-8 rounded-xl shadow-2xl relative overflow-hidden">
+          <div className="bg-[#0A0A0A] border border-white/10 p-8 rounded-xl shadow-2xl relative overflow-visible">
+            
+            {/* Success Overlay */}
+            <AnimatePresence>
+                {formLocked && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        className="absolute inset-0 z-50 bg-[#050505]/95 flex flex-col items-center justify-center text-center p-8 backdrop-blur-md rounded-xl border border-emerald-500/30"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0 }} 
+                            animate={{ scale: 1 }} 
+                            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                            className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4"
+                        >
+                            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </motion.div>
+                        <h3 className="text-2xl font-bold text-white mb-2">ACCESS GRANTED</h3>
+                        <p className="text-gray-400 text-sm">Your dossier has been encrypted and transmitted to the Sentinel Command. Stand by for contact.</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-50" />
             
             <div className="mb-6">
@@ -117,29 +158,64 @@ export default function SentinelPage() {
 
             <form action={handleSubmit} className="flex flex-col gap-5">
               
-              <div className="group">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2 group-focus-within:text-red-500 transition-colors">Operative Name</label>
-                <input type="text" name="name" required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all placeholder:text-gray-700" placeholder="Agent Name" />
-              </div>
+              {/* HONEYPOT (Hidden) */}
+              <input type="text" name="bot_field" className="hidden" tabIndex={-1} autoComplete="off" />
 
               <div className="group">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2 group-focus-within:text-red-500 transition-colors">Secure Email</label>
-                <input type="email" name="email" required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all placeholder:text-gray-700" placeholder="operative@agency.com" />
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2 group-focus-within:text-red-500 transition-colors">Operative Name</label>
+                <input type="text" name="name" required autoComplete="name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all placeholder:text-gray-700" placeholder="Agent Name" />
+              </div>
+
+              {/* Row: Email & Phone */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="group">
+                    <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2 group-focus-within:text-red-500 transition-colors">Secure Email</label>
+                    <input type="email" name="email" required autoComplete="email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all placeholder:text-gray-700" placeholder="user@agency.com" />
+                  </div>
+                  <div className="group">
+                    <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2 group-focus-within:text-red-500 transition-colors">Secure Line</label>
+                    <input type="tel" name="mobile" autoComplete="tel" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all placeholder:text-gray-700" placeholder="+1 (555)..." />
+                  </div>
               </div>
 
               <div className="group">
                 <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2 group-focus-within:text-red-500 transition-colors">Organization / Unit</label>
-                <input type="text" name="organization" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all placeholder:text-gray-700" placeholder="Org Name (Optional)" />
+                <input type="text" name="organization" autoComplete="organization" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all placeholder:text-gray-700" placeholder="Org Name (Optional)" />
               </div>
 
-              <div className="group">
-                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2 group-focus-within:text-red-500 transition-colors">Deployment Scale</label>
-                <select name="deployment_scale" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all cursor-pointer [&>option]:bg-black">
-                  <option value="Single Unit (Personal)">Single Unit (Personal)</option>
-                  <option value="Small Team (2-10)">Small Team (2-10)</option>
-                  <option value="Enterprise Grid (10+)">Enterprise Grid (10+)</option>
-                  <option value="Government / Defense">Government / Defense</option>
-                </select>
+              {/* CUSTOM DROPDOWN */}
+              <div className="group relative">
+                <label className="block text-xs uppercase tracking-widest text-gray-500 mb-2">Deployment Scale</label>
+                <button 
+                  type="button" 
+                  onClick={() => setScaleOpen(!scaleOpen)}
+                  className="w-full text-left bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:bg-red-900/10 outline-none transition-all flex justify-between items-center"
+                >
+                    <span className="truncate">{selectedScale}</span>
+                    <svg className={`w-4 h-4 text-gray-500 transition-transform ${scaleOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <AnimatePresence>
+                    {scaleOpen && (
+                        <motion.div 
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute top-full left-0 w-full bg-[#0A0A0A] border border-white/10 rounded-lg mt-2 overflow-hidden z-50 shadow-2xl"
+                        >
+                          {scaleOptions.map((opt) => (
+                            <div 
+                              key={opt}
+                              onClick={() => { setSelectedScale(opt); setScaleOpen(false); }}
+                              className="px-4 py-3 hover:bg-red-900/20 hover:text-red-400 cursor-pointer text-sm text-gray-300 transition-colors border-b border-white/5 last:border-0"
+                            >
+                              {opt}
+                            </div>
+                          ))}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
               </div>
 
               <div className="group">
@@ -149,10 +225,12 @@ export default function SentinelPage() {
 
               <button 
                 type="submit" 
-                disabled={isSubmitting}
-                className="mt-2 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-lg uppercase tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting || formLocked}
+                className="mt-2 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-lg uppercase tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
               >
-                {isSubmitting ? "TRANSMITTING..." : "INITIATE SEQUENCE"}
+                <span className="relative z-10">{isSubmitting ? "TRANSMITTING..." : "INITIATE SEQUENCE"}</span>
+                {/* Button Scan Effect */}
+                {!isSubmitting && <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out skew-x-12" />}
               </button>
 
             </form>
@@ -160,7 +238,7 @@ export default function SentinelPage() {
         </motion.div>
       </div>
 
-      {/* --- RED TOAST NOTIFICATION --- */}
+      {/* --- RED TOAST (Backup) --- */}
       <AnimatePresence>
         {showToast && (
           <motion.div 
@@ -176,8 +254,8 @@ export default function SentinelPage() {
                 </svg>
               </div>
               <div>
-                <h4 className="font-bold text-red-500 text-lg tracking-wide">ACCESS REQUESTED</h4>
-                <p className="text-gray-400 text-xs font-mono">ENCRYPTION KEY: PENDING APPROVAL</p>
+                <h4 className="font-bold text-red-500 text-lg tracking-wide">UPLINK ESTABLISHED</h4>
+                <p className="text-gray-400 text-xs font-mono">PACKET SENT. SECURE CHANNEL CLOSED.</p>
               </div>
             </div>
           </motion.div>
